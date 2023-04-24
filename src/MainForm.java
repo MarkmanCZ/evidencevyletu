@@ -72,7 +72,7 @@ public class MainForm extends JFrame {
                     File file = fileChooser.getSelectedFile();
                     try {
                         currentFile = file;
-                        loadData(null);
+                        loadData();
                     }catch (FileNotFoundException ex) {
                         JOptionPane.showMessageDialog(mainWindow,ex.getMessage(),"Error",JOptionPane.ERROR_MESSAGE);
                     }
@@ -86,7 +86,7 @@ public class MainForm extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                try {
-                   loadData(null);
+                   loadData();
                }catch(FileNotFoundException ex) {
                    ex.printStackTrace();
                }
@@ -96,12 +96,16 @@ public class MainForm extends JFrame {
         smažButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int index = Integer.parseInt(delNumInput.getText())-1;
-                cyklovylets.remove(cyklovylets.get(index));
+                if(delNumInput.getText().length() != 0) {
+                    int index = Integer.parseInt(delNumInput.getText())-1;
+                    cyklovylets.remove(cyklovylets.get(index));
 
-                dataArrea.setText("");
-                fillTextArrea();
-                InputWorker.resetInputs(delNumInput);
+                    dataArrea.setText("");
+                    fillTextArrea();
+                    InputWorker.resetInputs(delNumInput);
+                }else {
+                    JOptionPane.showMessageDialog(mainWindow,"Vyplň číslo indexu řádku!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -109,55 +113,39 @@ public class MainForm extends JFrame {
         this.setJMenuBar(menuBar);
 
         try {
-            loadData(null);
+            currentFile = new File("U:\\java\\evidence\\test.txt");
+            loadData();
         }catch(FileNotFoundException ex) {
             JOptionPane.showMessageDialog(mainWindow,ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 
         }
     }
 
-    private void loadData(File file) throws FileNotFoundException {
+    private void loadData() throws FileNotFoundException {
         if(currentFile != null) {
             //nacti z current file
             cyklovylets.removeAll(cyklovylets);
-            prepData(currentFile);
+            Scanner scanner = new Scanner(currentFile);
+            if(scanner.hasNextLine()) {
+                int i = 1;
+                while(scanner.hasNextLine()) {
+                    String radek = scanner.nextLine();
+                    String[] data = radek.split(",");
+
+                    Cyklovylet vylet = new Cyklovylet(data[0], Double.parseDouble(data[1]), LocalDate.parse(data[2]));
+
+                    cyklovylets.add(vylet);
+                }
+            }else {
+                JOptionPane.showMessageDialog(mainWindow,"Soubor je prazndy!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+
             fillTextArrea();
         }else {
-            if (file == null) {
-                //nacti z test.txt
-                File fileDefualt = new File("U:\\java\\evidence\\test.txt");
-
-                currentFile = fileDefualt;
-
-                prepData(fileDefualt);
-                fillTextArrea();
-            } else {
-
-                currentFile = file;
-                prepData(file);
-                fillTextArrea();
-            }
+            JOptionPane.showMessageDialog(mainWindow,"Problem!", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-    private void prepData(File file) throws FileNotFoundException {
-        Scanner scanner = new Scanner(file);
-        if(scanner.hasNextLine()) {
-            int i = 1;
-            while(scanner.hasNextLine()) {
-                String radek = scanner.nextLine();
-                String[] data = radek.split(",");
-
-                Cyklovylet vylet = new Cyklovylet(data[0], Double.parseDouble(data[1]), LocalDate.parse(data[2]));
-
-                cyklovylets.add(vylet);
-            }
-        }else {
-            JOptionPane.showMessageDialog(mainWindow,"Soubor je prazndy!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-
-    }
-
     private void fillTextArrea() {
         dataArrea.setText("");
 
